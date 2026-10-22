@@ -1,0 +1,23 @@
+manifestVersion: 1
+
+name: "@sntxrr/uptime-kuma"
+version: "2026.10.22.1"
+description: "Read-only Uptime Kuma monitor history for triage: the last N heartbeats of one monitor -- status, time, message, ping -- plus a summary of the current status, since when, and how many times it changed in the window. Kuma has no REST endpoint for heartbeat history, and its socket.io API needs the instance's only kind of login, an administrator, so any credential that can read history can also delete monitors and read notifier secrets. This model instead reads kuma.db over SSH with the host's python3, opening the database mode=ro with PRAGMA query_only=ON so SQLite itself refuses any write, and selects named columns from the monitor and heartbeat tables only: never notifier settings, credentials, monitor URLs or hostnames, or heartbeat response bodies. Monitors are found by id or by name (exact, else a unique case-insensitive substring; ambiguity is an error listing the candidates). It needs no Kuma login, never enters the container, never copies the database off the host, and has no write method."
+repository: "https://github.com/sntxrr/swamp-uptime-kuma"
+license: MIT
+
+models:
+  - kuma_history.ts
+
+additionalFiles:
+  - README.md
+  - LICENSE.md
+
+labels:
+  - uptime-kuma
+  - monitoring
+  - read-only
+  - triage
+  - sqlite
+  - homelab
+  - self-hosted
