@@ -338,8 +338,15 @@ export const model = {
   type: "@sntxrr/uptime-kuma/db",
   description:
     "Read-only Uptime Kuma monitor history: the last N heartbeats of one monitor (status, time, message, ping), read from kuma.db over SSH with the database opened mode=ro and query_only. Needs no Kuma login. Never returns notifier settings, credentials, monitor URLs or response bodies. Has no write method.",
-  version: "2026.10.22.1",
+  version: "2026.10.25.1",
   globalArguments: GlobalArgsSchema,
+  upgrades: [
+    {
+      toVersion: "2026.10.25.1",
+      description: "Version bump, no schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   resources: {
     history: {
       description:
@@ -369,6 +376,14 @@ export const model = {
         const g = context.globalArgs;
         const problem = validateSelector(args.id, args.name);
         if (problem) throw new Error(problem);
+        context.logger.info(
+          "reading {limit} heartbeats of monitor {selector} on {host}",
+          {
+            limit: args.limit,
+            selector: args.id ?? args.name,
+            host: g.sshHost,
+          },
+        );
 
         const script = buildScript({
           db: g.dbPath,
@@ -378,7 +393,10 @@ export const model = {
           importantOnly: args.importantOnly,
           msgMax: 500,
         });
-        // @ts-ignore - Deno is provided by the swamp extension runtime
+        // One subprocess, `ssh`, with an argv array (no shell). Host, user and
+        // interpreter are regex-validated in GlobalArgsSchema; the script is
+        // fixed (see buildScript) and goes over stdin, not argv.
+        // swamp-quality-ignore deno-command
         const proc = new Deno.Command("ssh", {
           args: sshArgs(g.sshHost, g.sshUser, `${g.python} -`, {
             strictHostKeyChecking: g.strictHostKeyChecking,
