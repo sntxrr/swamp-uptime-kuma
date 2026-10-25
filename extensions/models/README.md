@@ -93,6 +93,15 @@ Times are UTC. Status codes: 0 down, 1 up, 2 pending, 3 maintenance.
 | `strictHostKeyChecking` | `accept-new` | `no` is never the default. |
 | `knownHostsFile` | (unset) | Optional `UserKnownHostsFile` override. |
 
+## Subprocess
+
+The model spawns one subprocess, `ssh`, with an argument array (no shell).
+`sshHost`, `sshUser` and `python` are validated against plain-name patterns,
+so none can start with `-` or be read as an ssh option, and
+`strictHostKeyChecking` is an enum. The remote command is `<python> -`; the
+Python script is fixed in the model and sent over stdin, with `dbPath`, the
+monitor selector and the limit passed as JSON-encoded values inside it.
+
 ## Requirements
 
 - `ssh` with non-interactive (`BatchMode`) access to the host.
